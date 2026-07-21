@@ -99,7 +99,6 @@ td{padding:11px 14px;border-top:1px solid var(--line)}
 <body>
 <div id="root"></div>
 <div id="boot"><p>starting up<code id="bootmsg"></code></p></div>
-
 <script>/**
  * @license React
  * react.production.min.js
@@ -450,42 +449,69 @@ const store = {
 const KEY = 'kulture-os-v1';
 
 /* ---------- domain ---------- */
+const DEFAULT_LEADS = {
+  idea: 7,
+  script: 6,
+  shoot: 5,
+  edit: 3,
+  review: 2,
+  approval: 1,
+  scheduled: 1,
+  posted: 0
+};
+let LEADS = {
+  ...DEFAULT_LEADS
+};
 const CHAIN = [{
   k: 'idea',
-  l: 'idea',
-  lead: 14
+  l: 'idea'
 }, {
   k: 'script',
-  l: 'script',
-  lead: 10
+  l: 'script'
 }, {
   k: 'shoot',
   l: 'shoot',
-  lead: 7,
   shootOnly: true
 }, {
   k: 'edit',
-  l: 'edit',
-  lead: 5
+  l: 'edit'
 }, {
   k: 'review',
-  l: 'internal review',
-  lead: 4
+  l: 'internal review'
 }, {
   k: 'approval',
-  l: 'client approval',
-  lead: 2
+  l: 'client approval'
 }, {
   k: 'scheduled',
-  l: 'scheduled',
-  lead: 1
+  l: 'scheduled'
 }, {
   k: 'posted',
-  l: 'posted',
-  lead: 0
+  l: 'posted'
 }];
-const FORMATS = ['reel', 'post', 'carousel', 'story', 'short', 'long-form'];
+const leadOf = k => LEADS[k] ?? DEFAULT_LEADS[k];
+const ROLES = ['owner', 'creative', 'photographer', 'editor', 'planner', 'developer'];
+const STAGE_ROLE = {
+  idea: 'planner',
+  script: 'planner',
+  shoot: 'photographer',
+  edit: 'editor',
+  review: 'creative',
+  approval: 'owner',
+  scheduled: 'planner',
+  posted: 'planner'
+};
+const names = st => (st.people || []).map(p => p.name);
+/* route a handoff to the least-loaded person who does that job */
+const routeTo = (st, stageKey, fallback) => {
+  const role = STAGE_ROLE[stageKey];
+  const pool = (st.people || []).filter(p => (p.roles || []).includes(role));
+  if (!pool.length) return fallback || '';
+  const load = n => st.content.filter(c => c.owner === n && c.stage !== 'posted').length;
+  return pool.reduce((a, b) => load(a.name) <= load(b.name) ? a : b).name;
+};
+const FORMATS = ['reel', 'post', 'carousel', 'story', 'design'];
 const PTYPES = ['production', 'pdf design', 'website', 'branding', 'other'];
+const CTYPES = ['retainer', 'project', 'both'];
 const PSTAGES = ['inquiry', 'quote sent', 'approved', 'in progress', 'client review', 'delivered', 'paid'];
 const uid = () => Math.random().toString(36).slice(2, 9);
 const iso = d => d.toISOString().slice(0, 10);
@@ -507,9 +533,8 @@ const perShift = (p, n) => {
 };
 const chainOf = it => CHAIN.filter(s => !s.shootOnly || it.needsShoot);
 const dueOf = (it, sk) => {
-  const s = CHAIN.find(c => c.k === sk);
-  if (!s || !it.publishOn) return null;
-  return iso(new Date(new Date(it.publishOn).getTime() - s.lead * 864e5));
+  if (!CHAIN.find(c => c.k === sk) || !it.publishOn) return null;
+  return iso(new Date(new Date(it.publishOn).getTime() - leadOf(sk) * 864e5));
 };
 const late = it => {
   if (it.stage === 'posted') return {
@@ -603,125 +628,128 @@ const invLate = i => i.status === 'sent' && i.dueAt && new Date(i.dueAt) < new D
 
 /* ---------- seed ---------- */
 const SEED = {
-  people: ['ananya', 'rehan', 'meera'],
+  people: [{
+    name: 'shobhit',
+    roles: ['owner', 'planner']
+  }, {
+    name: 'priyanshi',
+    roles: ['owner', 'creative']
+  }, {
+    name: 'radhika',
+    roles: ['planner']
+  }, {
+    name: 'ayush',
+    roles: ['photographer']
+  }, {
+    name: 'subhan',
+    roles: ['photographer']
+  }, {
+    name: 'avinash',
+    roles: ['photographer']
+  }, {
+    name: 'aryan',
+    roles: ['editor']
+  }, {
+    name: 'rishabh',
+    roles: ['developer']
+  }],
   clients: [{
-    id: 'c1',
-    name: 'verde hospitality',
-    fee: 85000,
-    owner: 'ananya',
-    quotas: [{
-      format: 'post',
-      target: 12
-    }, {
-      format: 'reel',
-      target: 4
-    }, {
-      format: 'story',
-      target: 8
-    }],
+    id: 'k1',
+    name: 'rajkamals men',
+    type: 'retainer',
+    fee: 0,
+    owner: '',
+    quotas: [],
     manual: {}
   }, {
-    id: 'c2',
-    name: 'northline realty',
-    fee: 60000,
-    owner: 'rehan',
-    quotas: [{
-      format: 'post',
-      target: 16
-    }, {
-      format: 'reel',
-      target: 6
-    }],
+    id: 'k2',
+    name: 'eleven arch architects',
+    type: 'retainer',
+    fee: 0,
+    owner: '',
+    quotas: [],
     manual: {}
-  }],
-  content: [{
-    id: 'x1',
-    clientId: 'c1',
-    title: "chef's table teaser",
-    format: 'reel',
-    publishOn: plus(4),
-    needsShoot: true,
-    stage: 'edit',
-    owner: 'rehan',
-    shootId: 's1'
   }, {
-    id: 'x2',
-    clientId: 'c1',
-    title: 'monsoon menu carousel',
-    format: 'carousel',
-    publishOn: plus(6),
-    needsShoot: false,
-    stage: 'review',
-    owner: 'meera'
+    id: 'k3',
+    name: 'sacred',
+    type: 'retainer',
+    fee: 0,
+    owner: '',
+    quotas: [],
+    manual: {}
   }, {
-    id: 'x3',
-    clientId: 'c2',
-    title: '3bhk walkthrough',
-    format: 'reel',
-    publishOn: plus(2),
-    needsShoot: true,
-    stage: 'script',
-    owner: 'ananya',
-    shootId: 's1'
+    id: 'k4',
+    name: 'vahura',
+    type: 'retainer',
+    fee: 0,
+    owner: 'priyanshi',
+    quotas: [],
+    manual: {}
   }, {
-    id: 'x4',
-    clientId: 'c2',
-    title: 'buyer faq — stamp duty',
-    format: 'post',
-    publishOn: plus(9),
-    needsShoot: false,
-    stage: 'idea',
-    owner: 'ananya'
+    id: 'k5',
+    name: 'shatabdi synthetics',
+    type: 'project',
+    fee: 0,
+    owner: '',
+    quotas: [],
+    manual: {}
   }, {
-    id: 'x5',
-    clientId: 'c1',
-    title: 'sunday brunch stories',
-    format: 'story',
-    publishOn: plus(1),
-    needsShoot: false,
-    stage: 'approval',
-    owner: 'meera'
+    id: 'k6',
+    name: 'ratan housing',
+    type: 'project',
+    fee: 0,
+    owner: '',
+    quotas: [],
+    manual: {}
   }, {
-    id: 'x6',
-    clientId: 'c1',
-    title: 'terrace reveal',
-    format: 'post',
-    publishOn: plus(-3),
-    needsShoot: false,
-    stage: 'posted',
-    owner: 'meera'
-  }],
-  shoots: [{
-    id: 's1',
-    title: 'verde + northline batch',
-    date: plus(3),
-    location: 'verde rooftop'
+    id: 'k7',
+    name: 'totsy tales',
+    type: 'project',
+    fee: 0,
+    owner: '',
+    quotas: [],
+    manual: {}
   }],
   projects: [{
-    id: 'p1',
-    clientId: 'c1',
-    title: 'brand film — 90s cut',
-    type: 'production',
-    value: 340000,
-    stage: 'in progress',
-    deadline: plus(3),
-    revUsed: 1,
+    id: 'j1',
+    clientId: 'k5',
+    title: 'website build',
+    type: 'website',
+    value: 0,
+    stage: 'inquiry',
+    deadline: null,
+    revUsed: 0,
     revIncl: 2,
-    owner: 'rehan'
+    owner: 'rishabh'
   }, {
-    id: 'p2',
-    clientId: null,
-    clientName: 'halcyon labs',
-    title: 'investor deck',
-    type: 'pdf design',
-    value: 65000,
-    stage: 'client review',
-    deadline: plus(9),
-    revUsed: 2,
+    id: 'j2',
+    clientId: 'k6',
+    title: 'website build',
+    type: 'website',
+    value: 0,
+    stage: 'inquiry',
+    deadline: null,
+    revUsed: 0,
     revIncl: 2,
-    owner: 'meera'
+    owner: 'rishabh'
+  }, {
+    id: 'j3',
+    clientId: 'k7',
+    title: 'brand identity',
+    type: 'branding',
+    value: 0,
+    stage: 'inquiry',
+    deadline: null,
+    revUsed: 0,
+    revIncl: 2,
+    owner: 'priyanshi'
   }],
-  invoices: []
+  content: [],
+  shoots: [],
+  invoices: [],
+  leads: {
+    ...DEFAULT_LEADS
+  }
 };
 
 /* ---------- shell ---------- */
@@ -747,19 +775,42 @@ function App() {
       try {
         if (raw) d = JSON.parse(raw);
       } catch {}
-      setSt({
+      const merged = {
         clients: [],
         content: [],
         projects: [],
         invoices: [],
         people: [],
         shoots: [],
+        leads: {
+          ...DEFAULT_LEADS
+        },
         ...d
+      };
+      merged.people = (merged.people || []).map(p => {
+        if (typeof p === 'string') return {
+          name: p,
+          roles: []
+        };
+        if (p.roles) return p;
+        return {
+          name: p.name,
+          roles: p.role ? [p.role] : []
+        };
       });
+      LEADS = {
+        ...DEFAULT_LEADS,
+        ...(merged.leads || {})
+      };
+      setSt(merged);
       setReady(true);
     })();
   }, []);
   const save = next => {
+    LEADS = {
+      ...DEFAULT_LEADS,
+      ...(next.leads || {})
+    };
     setSt(next);
     store.set(KEY, JSON.stringify(next));
   };
@@ -774,7 +825,7 @@ function App() {
   }, "loading"));
   const liveC = st.content.filter(c => c.stage !== 'posted');
   const lateN = liveC.filter(c => late(c)?.key === 'late').length;
-  const NAV = [['today', 'today'], ['content', 'content'], ['clients', 'clients'], ['projects', 'projects'], ['money', 'money']];
+  const NAV = [['today', 'today'], ['content', 'content'], ['clients', 'clients'], ['projects', 'projects'], ['money', 'money'], ['setup', 'setup']];
   const ctx = {
     st,
     save,
@@ -858,7 +909,7 @@ function App() {
     style: {
       marginBottom: 9
     }
-  }, "team"), ['everyone', ...st.people].map(p => /*#__PURE__*/React.createElement("button", {
+  }, "team"), ['everyone', ...names(st)].map(p => /*#__PURE__*/React.createElement("button", {
     key: p,
     onClick: () => setWho(p),
     style: {
@@ -877,6 +928,7 @@ function App() {
         projects: [],
         invoices: [],
         people: st.people,
+        leads: st.leads,
         shoots: []
       });
     },
@@ -912,7 +964,7 @@ function App() {
       color: 'var(--bone)',
       borderColor: 'var(--faint)'
     } : {}
-  }, l))), view === 'today' && /*#__PURE__*/React.createElement(Today, ctx), view === 'content' && /*#__PURE__*/React.createElement(Content, ctx), view === 'clients' && /*#__PURE__*/React.createElement(Clients, ctx), view === 'projects' && /*#__PURE__*/React.createElement(Projects, ctx), view === 'money' && /*#__PURE__*/React.createElement(Money, ctx)), sheet === 'content' && /*#__PURE__*/React.createElement(ContentForm, {
+  }, l))), view === 'today' && /*#__PURE__*/React.createElement(Today, ctx), view === 'content' && /*#__PURE__*/React.createElement(Content, ctx), view === 'clients' && /*#__PURE__*/React.createElement(Clients, ctx), view === 'projects' && /*#__PURE__*/React.createElement(Projects, ctx), view === 'money' && /*#__PURE__*/React.createElement(Money, ctx), view === 'setup' && /*#__PURE__*/React.createElement(Setup, ctx)), sheet === 'content' && /*#__PURE__*/React.createElement(ContentForm, {
     ...ctx,
     close: () => setSheet(null)
   }), sheet === 'client' && /*#__PURE__*/React.createElement(ClientForm, {
@@ -949,9 +1001,11 @@ function Today({
       if (it.id !== id) return it;
       const ch = chainOf(it),
         i = ch.findIndex(s => s.k === it.stage);
+      const nk = ch[Math.max(0, Math.min(ch.length - 1, i + dir))].k;
       return {
         ...it,
-        stage: ch[Math.max(0, Math.min(ch.length - 1, i + dir))].k
+        stage: nk,
+        owner: dir > 0 ? routeTo(st, nk, it.owner) : it.owner
       };
     })
   });
@@ -980,7 +1034,7 @@ function Today({
       flexWrap: 'wrap',
       marginBottom: 24
     }
-  }, ['everyone', ...st.people].map(p => /*#__PURE__*/React.createElement("button", {
+  }, ['everyone', ...names(st)].map(p => /*#__PURE__*/React.createElement("button", {
     key: p,
     className: "btn",
     onClick: () => setWho(p),
@@ -1081,7 +1135,7 @@ function Today({
         fontSize: '.74rem',
         padding: '3px 6px'
       }
-    }, ['', ...st.people].map(p => /*#__PURE__*/React.createElement("option", {
+    }, ['', ...names(st)].map(p => /*#__PURE__*/React.createElement("option", {
       key: p,
       value: p
     }, p || 'unassigned')))), /*#__PURE__*/React.createElement("div", {
@@ -1116,9 +1170,11 @@ function Content({
       if (it.id !== id) return it;
       const ch = chainOf(it),
         i = ch.findIndex(s => s.k === it.stage);
+      const nk = ch[Math.max(0, Math.min(ch.length - 1, i + dir))].k;
       return {
         ...it,
-        stage: ch[Math.max(0, Math.min(ch.length - 1, i + dir))].k
+        stage: nk,
+        owner: dir > 0 ? routeTo(st, nk, it.owner) : it.owner
       };
     })
   });
@@ -1214,7 +1270,7 @@ function Content({
         padding: '4px 3px 10px',
         fontSize: '.58rem'
       }
-    }, s.lead ? `${s.lead}d before` : 'publish day'), /*#__PURE__*/React.createElement("div", {
+    }, leadOf(s.k) ? `${leadOf(s.k)}d before` : 'publish day'), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         flexDirection: 'column',
@@ -1666,7 +1722,7 @@ function Clients({
     style: {
       gridTemplateColumns: 'repeat(auto-fill,minmax(310px,1fr))'
     }
-  }, st.clients.map(c => {
+  }, st.clients.filter(c => (c.type || 'retainer') !== 'project').map(c => {
     const h = healthOf(st, c, period);
     return /*#__PURE__*/React.createElement("button", {
       key: c.id,
@@ -1959,7 +2015,7 @@ function Money({
 }) {
   const nameOf = id => st.clients.find(c => c.id === id)?.name || '—';
   const have = new Set(st.invoices.filter(i => i.period === period).map(i => i.clientId));
-  const missing = st.clients.filter(c => c.fee > 0 && !have.has(c.id));
+  const missing = st.clients.filter(c => c.fee > 0 && (c.type || 'retainer') !== 'project' && !have.has(c.id));
   const mine = st.invoices.filter(i => !i.period || i.period === period);
   const sum = f => mine.filter(f).reduce((a, i) => a + Number(i.amount || 0), 0);
   const gen = () => save({
@@ -2101,6 +2157,418 @@ function Money({
   }), !mine.length && /*#__PURE__*/React.createElement(Empty, null, "no invoices this month.")));
 }
 
+/* ---------- setup ---------- */
+function Setup({
+  st,
+  save,
+  setSheet
+}) {
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('photographer');
+  const [note, setNote] = useState('');
+  const flash = m => {
+    setNote(m);
+    setTimeout(() => setNote(''), 2600);
+  };
+  const addPerson = () => {
+    const n = name.trim().toLowerCase();
+    if (!n || names(st).includes(n)) return;
+    save({
+      ...st,
+      people: [...st.people, {
+        name: n,
+        roles: [role]
+      }]
+    });
+    setName('');
+  };
+  const toggleRole = (n, r) => save({
+    ...st,
+    people: st.people.map(p => {
+      if (p.name !== n) return p;
+      const has = (p.roles || []).includes(r);
+      return {
+        ...p,
+        roles: has ? p.roles.filter(x => x !== r) : [...(p.roles || []), r]
+      };
+    })
+  });
+  const dropPerson = n => {
+    if (!confirm(`remove ${n}? their assigned work becomes unassigned.`)) return;
+    save({
+      ...st,
+      people: st.people.filter(x => x.name !== n),
+      content: st.content.map(c => c.owner === n ? {
+        ...c,
+        owner: ''
+      } : c),
+      projects: st.projects.map(x => x.owner === n ? {
+        ...x,
+        owner: ''
+      } : x),
+      clients: st.clients.map(c => c.owner === n ? {
+        ...c,
+        owner: ''
+      } : c)
+    });
+  };
+  const backup = () => {
+    const blob = new Blob([JSON.stringify(st, null, 2)], {
+      type: 'application/json'
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `kulture-os-${nowIso()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    flash('backup downloaded');
+  };
+  const restore = e => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (!d.clients || !d.content) throw new Error('not a kulture os backup');
+        if (!confirm('this replaces everything currently in this browser. continue?')) return;
+        save({
+          clients: [],
+          content: [],
+          projects: [],
+          invoices: [],
+          people: [],
+          shoots: [],
+          ...d
+        });
+        flash('restored');
+      } catch (err) {
+        flash('could not read that file');
+      }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  };
+  const wipe = () => {
+    if (!confirm('replace everything with the kulture starter set — team, clients and projects? anything you have entered will be lost.')) return;
+    save(JSON.parse(JSON.stringify(SEED)));
+    flash('starter data loaded — now set fees and quotas');
+  };
+  const empty = () => {
+    if (!confirm('delete all clients, content and projects?')) return;
+    save({
+      ...st,
+      clients: [],
+      content: [],
+      projects: [],
+      invoices: [],
+      shoots: []
+    });
+    flash('cleared');
+  };
+  const counts = `${st.clients.length} clients · ${st.content.length} content · ${st.projects.length} projects · ${st.invoices.length} invoices`;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 660,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement(Head, {
+    t: "setup",
+    s: "team, clients and your data"
+  }), note && /*#__PURE__*/React.createElement("div", {
+    className: "tag t-done",
+    style: {
+      marginBottom: 18
+    }
+  }, note), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      marginBottom: 11
+    }
+  }, "team"), /*#__PURE__*/React.createElement("div", {
+    className: "panel",
+    style: {
+      padding: 16,
+      marginBottom: 26
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2,
+      marginBottom: 14
+    }
+  }, st.people.map(p => /*#__PURE__*/React.createElement("div", {
+    key: p.name,
+    style: {
+      padding: '10px 0',
+      borderBottom: '1px solid var(--line)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: '.88rem'
+    }
+  }, p.name), /*#__PURE__*/React.createElement("button", {
+    onClick: () => dropPerson(p.name),
+    style: {
+      color: 'var(--ghost)',
+      fontSize: '.75rem'
+    }
+  }, "remove")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 5,
+      flexWrap: 'wrap'
+    }
+  }, ROLES.map(r => {
+    const on = (p.roles || []).includes(r);
+    return /*#__PURE__*/React.createElement("button", {
+      key: r,
+      onClick: () => toggleRole(p.name, r),
+      style: {
+        fontSize: '.68rem',
+        padding: '2px 9px',
+        borderRadius: 99,
+        border: '1px solid ' + (on ? 'var(--blaze)' : 'var(--line-2)'),
+        background: on ? 'rgba(255,96,0,.12)' : 'transparent',
+        color: on ? 'var(--blaze)' : 'var(--ghost)'
+      }
+    }, r);
+  })))), !st.people.length && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '.8rem',
+      color: 'var(--ghost)'
+    }
+  }, "no one added yet")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 9,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: name,
+    placeholder: "name",
+    style: {
+      flex: 1,
+      minWidth: 120
+    },
+    onChange: e => setName(e.target.value),
+    onKeyDown: e => e.key === 'Enter' && addPerson()
+  }), /*#__PURE__*/React.createElement("select", {
+    value: role,
+    onChange: e => setRole(e.target.value),
+    style: {
+      width: 'auto'
+    }
+  }, ROLES.map(r => /*#__PURE__*/React.createElement("option", {
+    key: r,
+    value: r
+  }, r))), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-p",
+    style: {
+      flex: 'none'
+    },
+    onClick: addPerson
+  }, "add")), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '.75rem',
+      color: 'var(--faint)',
+      lineHeight: 1.7,
+      marginTop: 14
+    }
+  }, "roles decide where work goes. handing a piece to shoot sends it to whichever photographer has the fewest open items; edit goes to an editor; review goes to creative; client approval goes to an owner. people can hold more than one role — tap to toggle.")), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      marginBottom: 11
+    }
+  }, "clients"), /*#__PURE__*/React.createElement("div", {
+    className: "panel",
+    style: {
+      padding: 16,
+      marginBottom: 26
+    }
+  }, st.clients.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.id,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '8px 0',
+      borderBottom: '1px solid var(--line)'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '.88rem'
+    }
+  }, c.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '.7rem',
+      color: 'var(--faint)'
+    }
+  }, c.type || 'retainer', " · ", c.fee ? inr(c.fee) + '/mo' : 'no fee set', (c.type || 'retainer') !== 'project' && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: (c.quotas || []).length ? 'var(--faint)' : 'var(--blaze)'
+    }
+  }, ' · ', (c.quotas || []).map(q => `${q.target} ${q.format}`).join(', ') || 'quota not set'))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (confirm(`delete ${c.name} and all their content?`)) save({
+        ...st,
+        clients: st.clients.filter(x => x.id !== c.id),
+        content: st.content.filter(x => x.clientId !== c.id),
+        projects: st.projects.filter(x => x.clientId !== c.id)
+      });
+    },
+    style: {
+      color: 'var(--ghost)',
+      fontSize: '.75rem'
+    }
+  }, "delete"))), !st.clients.length && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '.8rem',
+      color: 'var(--ghost)',
+      marginBottom: 12
+    }
+  }, "no clients yet"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      marginTop: 14
+    },
+    onClick: () => setSheet('client')
+  }, "+ add client")), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      marginBottom: 11
+    }
+  }, "production timeline"), /*#__PURE__*/React.createElement("div", {
+    className: "panel",
+    style: {
+      padding: 16,
+      marginBottom: 26
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '.8rem',
+      color: 'var(--dim)',
+      lineHeight: 1.7,
+      marginBottom: 14
+    }
+  }, "days before publish that each stage must be finished. this is what decides whether something shows as late. if one stage keeps running over, give it more days here."), CHAIN.filter(c => c.k !== 'posted').map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.k,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '6px 0',
+      borderBottom: '1px solid var(--line)'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: '.85rem'
+    }
+  }, c.l), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 9
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    max: "60",
+    value: (st.leads || {})[c.k] ?? DEFAULT_LEADS[c.k],
+    onChange: e => save({
+      ...st,
+      leads: {
+        ...(st.leads || DEFAULT_LEADS),
+        [c.k]: Number(e.target.value)
+      }
+    }),
+    style: {
+      width: 64,
+      textAlign: 'right',
+      padding: '4px 7px'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: '.72rem',
+      color: 'var(--faint)',
+      minWidth: 96
+    }
+  }, "days before")))), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      marginTop: 14
+    },
+    onClick: () => save({
+      ...st,
+      leads: {
+        ...DEFAULT_LEADS
+      }
+    })
+  }, "reset to defaults")), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      marginBottom: 11
+    }
+  }, "your data"), /*#__PURE__*/React.createElement("div", {
+    className: "panel",
+    style: {
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '.8rem',
+      color: 'var(--dim)',
+      lineHeight: 1.7,
+      marginBottom: 14
+    }
+  }, "everything lives in this browser on this device. it does not sync to anyone else. download a backup regularly, and use it to move your data to another machine."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '.72rem',
+      color: 'var(--ghost)',
+      marginBottom: 16
+    }
+  }, counts), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 9,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-p",
+    onClick: backup
+  }, "download backup"), /*#__PURE__*/React.createElement("label", {
+    className: "btn",
+    style: {
+      cursor: 'pointer'
+    }
+  }, "restore from file", /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "application/json",
+    onChange: restore,
+    style: {
+      display: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: wipe
+  }, "load kulture starter data"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: empty,
+    style: {
+      color: 'var(--blaze)',
+      borderColor: 'rgba(255,96,0,.35)'
+    }
+  }, "clear everything"))));
+}
+
 /* ---------- forms ---------- */
 function Sheet({
   title,
@@ -2182,7 +2650,7 @@ function ContentForm({
     format: 'reel',
     publishOn: plus(12),
     needsShoot: false,
-    owner: st.people[0] || '',
+    owner: names(st)[0] || '',
     stage: 'idea'
   });
   const s = k => v => setF(p => ({
@@ -2250,7 +2718,7 @@ function ContentForm({
   }, /*#__PURE__*/React.createElement(Sel, {
     v: f.owner,
     on: s('owner'),
-    opts: ['', ...st.people]
+    opts: ['', ...names(st)]
   }))), /*#__PURE__*/React.createElement("label", {
     style: {
       display: 'flex',
@@ -2290,7 +2758,7 @@ function ContentForm({
     style: {
       color: 'var(--faint)'
     }
-  }, iso(new Date(new Date(f.publishOn).getTime() - c.lead * 864e5)))))));
+  }, iso(new Date(new Date(f.publishOn).getTime() - leadOf(c.k) * 864e5)))))));
 }
 function ClientForm({
   st,
@@ -2300,7 +2768,8 @@ function ClientForm({
   const [f, setF] = useState({
     name: '',
     fee: '',
-    owner: st.people[0] || ''
+    type: 'retainer',
+    owner: names(st)[0] || ''
   });
   const [q, setQ] = useState([{
     format: 'post',
@@ -2322,6 +2791,7 @@ function ClientForm({
           id: uid(),
           name: f.name.trim().toLowerCase(),
           fee: Number(f.fee) || 0,
+          type: f.type,
           owner: f.owner,
           quotas: q.filter(x => x.target > 0),
           manual: {}
@@ -2338,10 +2808,16 @@ function ClientForm({
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      gridTemplateColumns: '1fr 1fr 1fr',
       gap: 11
     }
   }, /*#__PURE__*/React.createElement(F, {
+    l: "type"
+  }, /*#__PURE__*/React.createElement(Sel, {
+    v: f.type,
+    on: s('type'),
+    opts: CTYPES
+  })), /*#__PURE__*/React.createElement(F, {
     l: "monthly fee"
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
@@ -2353,7 +2829,7 @@ function ClientForm({
   }, /*#__PURE__*/React.createElement(Sel, {
     v: f.owner,
     on: s('owner'),
-    opts: ['', ...st.people]
+    opts: ['', ...names(st)]
   }))), /*#__PURE__*/React.createElement(F, {
     l: "monthly quota"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2416,7 +2892,7 @@ function ProjectForm({
     value: '',
     deadline: plus(21),
     revIncl: 2,
-    owner: st.people[0] || ''
+    owner: names(st)[0] || ''
   });
   const s = k => v => setF(p => ({
     ...p,
@@ -2497,7 +2973,7 @@ function ProjectForm({
   }, /*#__PURE__*/React.createElement(Sel, {
     v: f.owner,
     on: s('owner'),
-    opts: ['', ...st.people]
+    opts: ['', ...names(st)]
   })));
 }
 function ShootForm({
