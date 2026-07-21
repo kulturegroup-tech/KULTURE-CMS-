@@ -1,0 +1,987 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>kulture os</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<style>
+:root{
+  --ink:#272727; --deep:#1e1e1e; --bone:#fffbf9;
+  --blaze:#ff6000; --ember:#d65405; --glow:#ff9a3d; --acid:#e7ff71;
+  --display:'Funnel Display',sans-serif;
+  --body:'Montserrat',sans-serif;
+  --mono:'Space Mono',monospace;
+  --dot-grad:linear-gradient(160deg,var(--glow) 0%,var(--blaze) 48%,var(--ember) 100%);
+  --line:rgba(255,251,249,.10);
+  --line-2:rgba(255,251,249,.18);
+  --dim:rgba(255,251,249,.56);
+  --faint:rgba(255,251,249,.34);
+  --ghost:rgba(255,251,249,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%}
+body{
+  background:var(--ink); color:var(--bone);
+  font-family:var(--body); font-size:14px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; text-transform:lowercase;
+}
+button,input,select{font:inherit;color:inherit;text-transform:lowercase}
+button{background:none;border:none;cursor:pointer}
+input,select{background:var(--ink);border:1px solid var(--line-2);border-radius:6px;padding:7px 9px;width:100%;outline:none}
+input:focus,select:focus{border-color:var(--faint)}
+input[type=checkbox]{width:auto;accent-color:var(--blaze)}
+select option{background:var(--deep)}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:8px}
+
+.mono{font-family:var(--mono);font-size:.66rem;letter-spacing:.26em;color:var(--faint)}
+.disp{font-family:var(--display);font-weight:600;letter-spacing:-.03em}
+.num{font-family:var(--display);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+.dot{background:var(--dot-grad);border-radius:50%;display:inline-block;flex:none}
+
+.panel{background:var(--deep);border:1px solid var(--line);border-radius:12px}
+.panel-q{background:rgba(30,30,30,.5);border:1px solid var(--line);border-radius:10px}
+
+.tag{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:2px 9px;font-size:.7rem;border:1px solid}
+.t-late{color:var(--blaze);border-color:rgba(255,96,0,.4);background:rgba(255,96,0,.1)}
+.t-soon{color:var(--glow);border-color:rgba(255,154,61,.35);background:rgba(255,154,61,.08)}
+.t-done{color:var(--acid);border-color:rgba(231,255,113,.3);background:rgba(231,255,113,.07)}
+.t-calm{color:var(--dim);border-color:var(--line-2)}
+
+.btn{border:1px solid var(--line-2);border-radius:7px;padding:6px 12px;font-size:.78rem;color:var(--dim);transition:.16s}
+.btn:hover{color:var(--bone);border-color:var(--faint)}
+.btn-p{background:var(--blaze);border-color:var(--blaze);color:#1a1a1a;font-weight:600}
+.btn-p:hover{background:var(--glow);border-color:var(--glow);color:#1a1a1a}
+
+.nav{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;color:var(--dim);width:100%;text-align:left;font-size:.85rem;transition:.16s}
+.nav:hover{color:var(--bone);background:rgba(255,251,249,.04)}
+.nav.on{color:var(--bone);background:rgba(255,251,249,.07)}
+
+.row{border:1px solid var(--line);border-radius:10px;background:var(--deep);padding:13px 15px;transition:.16s}
+.row:hover{border-color:var(--line-2)}
+
+.bar{position:relative;height:3px;border-radius:99px;background:rgba(255,251,249,.09);overflow:visible}
+.bar>i{display:block;height:3px;border-radius:99px;transition:width .3s}
+
+.chain{display:flex;align-items:center;gap:7px;overflow-x:auto;padding-bottom:2px}
+.chain span{white-space:nowrap;font-size:.68rem;color:var(--ghost)}
+.chain span.past{color:var(--faint)}
+.chain span.now{color:var(--bone)}
+
+.grid{display:grid;gap:12px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cell{min-height:88px;border:1px solid var(--line);border-radius:8px;padding:6px;background:rgba(30,30,30,.4)}
+.cell.today{border-color:var(--blaze);background:rgba(255,96,0,.05)}
+.chip{font-size:.64rem;padding:2px 5px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+
+.sheet{position:fixed;inset:0;background:rgba(20,20,20,.82);display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;overflow-y:auto;z-index:50}
+.card{width:100%;max-width:430px;background:var(--deep);border:1px solid var(--line-2);border-radius:14px;padding:22px}
+
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{text-align:left;font-weight:400;padding:9px 14px;color:var(--faint);font-family:var(--mono);font-size:.62rem;letter-spacing:.2em}
+td{padding:11px 14px;border-top:1px solid var(--line)}
+
+.scroll-x{display:flex;gap:11px;overflow-x:auto;padding-bottom:12px}
+@media(max-width:640px){.hide-s{display:none}}
+@media(min-width:641px){.only-s{display:none}}
+</style>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, Fragment } = React;
+
+/* ---------- storage: works inside Claude AND when deployed ---------- */
+const mem = {};
+const store = {
+  async get(k){
+    if (typeof window !== 'undefined' && window.storage) {
+      try { const r = await window.storage.get(k); return r?.value ?? null; } catch { return null; }
+    }
+    try { return localStorage.getItem(k); } catch { return mem[k] ?? null; }
+  },
+  async set(k, v){
+    if (typeof window !== 'undefined' && window.storage) {
+      try { await window.storage.set(k, v); return; } catch {}
+    }
+    try { localStorage.setItem(k, v); } catch { mem[k] = v; }
+  }
+};
+const KEY = 'kulture-os-v1';
+
+/* ---------- domain ---------- */
+const CHAIN = [
+  { k:'idea',      l:'idea',            lead:14 },
+  { k:'script',    l:'script',          lead:10 },
+  { k:'shoot',     l:'shoot',           lead:7, shootOnly:true },
+  { k:'edit',      l:'edit',            lead:5 },
+  { k:'review',    l:'internal review', lead:4 },
+  { k:'approval',  l:'client approval', lead:2 },
+  { k:'scheduled', l:'scheduled',       lead:1 },
+  { k:'posted',    l:'posted',          lead:0 },
+];
+const FORMATS = ['reel','post','carousel','story','short','long-form'];
+const PTYPES  = ['production','pdf design','website','branding','other'];
+const PSTAGES = ['inquiry','quote sent','approved','in progress','client review','delivered','paid'];
+
+const uid = () => Math.random().toString(36).slice(2,9);
+const iso = d => d.toISOString().slice(0,10);
+const nowIso = () => iso(new Date());
+const plus = n => iso(new Date(Date.now()+n*864e5));
+const gap = (a,b) => Math.round((new Date(a)-new Date(b))/864e5);
+const inr = n => '₹'+Number(n||0).toLocaleString('en-IN');
+const per = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+const perLabel = p => { const [y,m]=p.split('-').map(Number); return new Date(y,m-1,1).toLocaleString('en-US',{month:'long',year:'numeric'}).toLowerCase(); };
+const perShift = (p,n) => { const [y,m]=p.split('-').map(Number); return per(new Date(y,m-1+n,1)); };
+
+const chainOf = it => CHAIN.filter(s => !s.shootOnly || it.needsShoot);
+const dueOf = (it, sk) => {
+  const s = CHAIN.find(c=>c.k===sk);
+  if(!s || !it.publishOn) return null;
+  return iso(new Date(new Date(it.publishOn).getTime() - s.lead*864e5));
+};
+const late = it => {
+  if(it.stage==='posted') return { key:'done', label:'posted', cls:'t-done', d:-999 };
+  const due = dueOf(it, it.stage); if(!due) return null;
+  const d = gap(nowIso(), due);
+  if(d>0)  return { key:'late', label:`${d}d late`, cls:'t-late', d };
+  if(d===0)return { key:'now',  label:'due today',  cls:'t-soon', d };
+  if(d>=-2)return { key:'soon', label:`in ${-d}d`,  cls:'t-soon', d };
+  return { key:'ok', label:`in ${-d}d`, cls:'t-calm', d };
+};
+
+/* pace through the month, 0→1 */
+const paceOf = p => {
+  const n = new Date(), c = per(n);
+  if(p<c) return 1; if(p>c) return 0;
+  return n.getDate()/new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+};
+
+/* delivered = posted content in that month + manual adjustments */
+const delivered = (st, client, period, format) => {
+  const auto = st.content.filter(c =>
+    c.clientId===client.id && c.stage==='posted' && c.format===format && (c.publishOn||'').slice(0,7)===period
+  ).length;
+  return auto + (client.manual?.[period]?.[format] || 0);
+};
+
+const healthOf = (st, c, period) => {
+  const qs = c.quotas||[];
+  if(!qs.length) return { label:'no quota', cls:'t-calm', key:'none' };
+  const pace = paceOf(period);
+  const avg = qs.reduce((a,q)=>a+Math.min(delivered(st,c,period,q.format)/(q.target||1),2),0)/qs.length;
+  if(avg >= pace+.28) return { label:'over-servicing', cls:'t-soon', key:'over' };
+  if(avg <  pace-.15) return { label:'behind pace',    cls:'t-late', key:'risk' };
+  return { label:'on track', cls:'t-done', key:'ok' };
+};
+
+const projFlag = p => {
+  if(['delivered','paid'].includes(p.stage) || !p.deadline) return null;
+  const d = gap(p.deadline, nowIso());
+  if(d<0) return { label:'overdue', cls:'t-late' };
+  if(d<=5) return { label:`${d}d left`, cls:'t-soon' };
+  return null;
+};
+const invLate = i => i.status==='sent' && i.dueAt && new Date(i.dueAt) < new Date();
+
+/* ---------- seed ---------- */
+const SEED = {
+  people:['ananya','rehan','meera'],
+  clients:[
+    { id:'c1', name:'verde hospitality', fee:85000, owner:'ananya',
+      quotas:[{format:'post',target:12},{format:'reel',target:4},{format:'story',target:8}], manual:{} },
+    { id:'c2', name:'northline realty', fee:60000, owner:'rehan',
+      quotas:[{format:'post',target:16},{format:'reel',target:6}], manual:{} },
+  ],
+  content:[
+    { id:'x1', clientId:'c1', title:"chef's table teaser", format:'reel', publishOn:plus(4), needsShoot:true, stage:'edit', owner:'rehan', shootId:'s1' },
+    { id:'x2', clientId:'c1', title:'monsoon menu carousel', format:'carousel', publishOn:plus(6), needsShoot:false, stage:'review', owner:'meera' },
+    { id:'x3', clientId:'c2', title:'3bhk walkthrough', format:'reel', publishOn:plus(2), needsShoot:true, stage:'script', owner:'ananya', shootId:'s1' },
+    { id:'x4', clientId:'c2', title:'buyer faq — stamp duty', format:'post', publishOn:plus(9), needsShoot:false, stage:'idea', owner:'ananya' },
+    { id:'x5', clientId:'c1', title:'sunday brunch stories', format:'story', publishOn:plus(1), needsShoot:false, stage:'approval', owner:'meera' },
+    { id:'x6', clientId:'c1', title:'terrace reveal', format:'post', publishOn:plus(-3), needsShoot:false, stage:'posted', owner:'meera' },
+  ],
+  shoots:[{ id:'s1', title:'verde + northline batch', date:plus(3), location:'verde rooftop' }],
+  projects:[
+    { id:'p1', clientId:'c1', title:'brand film — 90s cut', type:'production', value:340000, stage:'in progress', deadline:plus(3), revUsed:1, revIncl:2, owner:'rehan' },
+    { id:'p2', clientId:null, clientName:'halcyon labs', title:'investor deck', type:'pdf design', value:65000, stage:'client review', deadline:plus(9), revUsed:2, revIncl:2, owner:'meera' },
+  ],
+  invoices:[],
+};
+
+/* ---------- shell ---------- */
+function App(){
+  const [ready,setReady] = useState(false);
+  const [st,setSt] = useState({clients:[],content:[],projects:[],invoices:[],people:[],shoots:[]});
+  const [view,setView] = useState('today');
+  const [who,setWho] = useState('everyone');
+  const [period,setPeriod] = useState(per(new Date()));
+  const [open,setOpen] = useState(null);
+  const [sheet,setSheet] = useState(null);
+
+  useEffect(()=>{(async()=>{
+    const raw = await store.get(KEY);
+    let d = SEED; try { if(raw) d = JSON.parse(raw); } catch {}
+    setSt({clients:[],content:[],projects:[],invoices:[],people:[],shoots:[],...d});
+    setReady(true);
+  })()},[]);
+
+  const save = next => { setSt(next); store.set(KEY, JSON.stringify(next)); };
+
+  if(!ready) return <div style={{display:'grid',placeItems:'center',height:'100%'}}><span className="mono">loading</span></div>;
+
+  const liveC = st.content.filter(c=>c.stage!=='posted');
+  const lateN = liveC.filter(c=>late(c)?.key==='late').length;
+  const NAV = [['today','today'],['content','content'],['clients','clients'],['projects','projects'],['money','money']];
+
+  const ctx = { st, save, who, setWho, period, setPeriod, open, setOpen, setSheet };
+
+  return (
+    <div style={{display:'flex',minHeight:'100%'}}>
+      <aside className="hide-s" style={{width:206,flex:'none',borderRight:'1px solid var(--line)',padding:'22px 12px',display:'flex',flexDirection:'column'}}>
+        <div style={{padding:'0 10px',marginBottom:26}}>
+          <div className="disp" style={{fontSize:'1.35rem',display:'flex',alignItems:'baseline',gap:3}}>
+            kulture<span className="dot" style={{width:7,height:7}}/>
+          </div>
+          <div className="mono" style={{marginTop:7}}>{liveC.length} live{lateN?` / ${lateN} late`:''}</div>
+        </div>
+        <nav style={{display:'flex',flexDirection:'column',gap:2}}>
+          {NAV.map(([k,l])=>(
+            <button key={k} className={'nav'+(view===k?' on':'')} onClick={()=>{setView(k);setOpen(null);}}>
+              {view===k && <span className="dot" style={{width:5,height:5}}/>}
+              <span style={{marginLeft:view===k?0:13}}>{l}</span>
+            </button>
+          ))}
+        </nav>
+        <div style={{marginTop:26,padding:'0 10px'}}>
+          <div className="mono" style={{marginBottom:9}}>team</div>
+          {['everyone',...st.people].map(p=>(
+            <button key={p} onClick={()=>setWho(p)}
+              style={{display:'block',width:'100%',textAlign:'left',fontSize:'.78rem',padding:'3px 0',
+                      color: who===p ? 'var(--bone)' : 'var(--faint)'}}>{p}</button>
+          ))}
+        </div>
+        <button onClick={()=>{ if(confirm('clear everything?')) save({clients:[],content:[],projects:[],invoices:[],people:st.people,shoots:[]}); }}
+          style={{marginTop:'auto',padding:'8px 10px',textAlign:'left',fontSize:'.72rem',color:'var(--ghost)'}}>reset all data</button>
+      </aside>
+
+      <main style={{flex:1,minWidth:0,padding:'26px 22px'}}>
+        <div className="only-s" style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:20}}>
+          {NAV.map(([k,l])=>(
+            <button key={k} className="btn" onClick={()=>{setView(k);setOpen(null);}}
+              style={view===k?{color:'var(--bone)',borderColor:'var(--faint)'}:{}}>{l}</button>
+          ))}
+        </div>
+
+        {view==='today'    && <Today {...ctx} />}
+        {view==='content'  && <Content {...ctx} />}
+        {view==='clients'  && <Clients {...ctx} />}
+        {view==='projects' && <Projects {...ctx} />}
+        {view==='money'    && <Money {...ctx} />}
+      </main>
+
+      {sheet==='content' && <ContentForm {...ctx} close={()=>setSheet(null)} />}
+      {sheet==='client'  && <ClientForm  {...ctx} close={()=>setSheet(null)} />}
+      {sheet==='project' && <ProjectForm {...ctx} close={()=>setSheet(null)} />}
+      {sheet==='shoot'   && <ShootForm   {...ctx} close={()=>setSheet(null)} />}
+      {sheet==='invoice' && <InvoiceForm {...ctx} close={()=>setSheet(null)} />}
+    </div>
+  );
+}
+
+/* ---------- today ---------- */
+function Today({ st, save, who, setWho, setSheet }){
+  const nameOf = id => st.clients.find(c=>c.id===id)?.name || '—';
+  const items = st.content
+    .filter(c=>c.stage!=='posted')
+    .filter(c=>who==='everyone'||c.owner===who)
+    .map(c=>({c,l:late(c)}))
+    .sort((a,b)=>(b.l?.d??-99)-(a.l?.d??-99));
+
+  const move = (id,dir) => save({...st, content: st.content.map(it=>{
+    if(it.id!==id) return it;
+    const ch = chainOf(it), i = ch.findIndex(s=>s.k===it.stage);
+    return {...it, stage: ch[Math.max(0,Math.min(ch.length-1,i+dir))].k};
+  })});
+  const assign = (id,owner) => save({...st, content: st.content.map(it=>it.id===id?{...it,owner}:it)});
+
+  const groups = [
+    ['behind — do these first', items.filter(x=>x.l?.key==='late')],
+    ['this week',               items.filter(x=>['now','soon'].includes(x.l?.key))],
+    ['coming up',               items.filter(x=>x.l?.key==='ok')],
+  ];
+
+  return (
+    <div style={{maxWidth:780,margin:'0 auto'}}>
+      <Head t={who==='everyone'?'today':`${who} — today`}
+            s="ordered by how far past its handover date, not by publish date"
+            a="add content" onA={()=>setSheet('content')} />
+
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:24}}>
+        {['everyone',...st.people].map(p=>(
+          <button key={p} className="btn" onClick={()=>setWho(p)}
+            style={who===p?{color:'var(--bone)',borderColor:'var(--faint)'}:{}}>{p}</button>
+        ))}
+      </div>
+
+      {groups.map(([label,list]) => list.length>0 && (
+        <div key={label} style={{marginBottom:30}}>
+          <div className="mono" style={{marginBottom:11}}>{label}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:9}}>
+            {list.map(({c,l})=>{
+              const ch = chainOf(c), i = ch.findIndex(s=>s.k===c.stage), next = ch[i+1];
+              return (
+                <div key={c.id} className="row">
+                  <div style={{display:'flex',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:'.92rem'}}>{c.title}</div>
+                      <div style={{fontSize:'.74rem',color:'var(--faint)',marginTop:2}}>
+                        {nameOf(c.clientId)} · {c.format} · out {c.publishOn}
+                      </div>
+                    </div>
+                    {l && <span className={'tag '+l.cls}>{l.label}</span>}
+                  </div>
+
+                  <div className="chain" style={{margin:'12px 0'}}>
+                    {ch.map((s,n)=>(
+                      <Fragment key={s.k}>
+                        {n===i && <span className="dot" style={{width:5,height:5}}/>}
+                        <span className={n<i?'past':n===i?'now':''}>{s.l}</span>
+                      </Fragment>
+                    ))}
+                  </div>
+
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,
+                               flexWrap:'wrap',borderTop:'1px solid var(--line)',paddingTop:11}}>
+                    <div style={{display:'flex',alignItems:'center',gap:9}}>
+                      <span style={{fontSize:'.74rem',color:'var(--faint)'}}>due {dueOf(c,c.stage)}</span>
+                      <select value={c.owner||''} onChange={e=>assign(c.id,e.target.value)}
+                        style={{width:'auto',fontSize:'.74rem',padding:'3px 6px'}}>
+                        {['',...st.people].map(p=><option key={p} value={p}>{p||'unassigned'}</option>)}
+                      </select>
+                    </div>
+                    <div style={{display:'flex',gap:7}}>
+                      <button className="btn" onClick={()=>move(c.id,-1)}>back</button>
+                      {next && <button className="btn btn-p" onClick={()=>move(c.id,1)}>hand to {next.l} →</button>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {!items.length && <Empty>nothing assigned. add content, or pick another person.</Empty>}
+    </div>
+  );
+}
+
+/* ---------- content: board + calendar + shoots ---------- */
+function Content({ st, save, who, setSheet }){
+  const [tab,setTab] = useState('board');
+  const [month,setMonth] = useState(new Date());
+  const nameOf = id => st.clients.find(c=>c.id===id)?.name || '—';
+  const items = st.content.filter(c=>who==='everyone'||c.owner===who);
+
+  const move = (id,dir) => save({...st, content: st.content.map(it=>{
+    if(it.id!==id) return it;
+    const ch = chainOf(it), i = ch.findIndex(s=>s.k===it.stage);
+    return {...it, stage: ch[Math.max(0,Math.min(ch.length-1,i+dir))].k};
+  })});
+
+  const y=month.getFullYear(), m=month.getMonth();
+  const days=new Date(y,m+1,0).getDate(), pad=new Date(y,m,1).getDay();
+  const cells=[...Array(pad).fill(null),...Array.from({length:days},(_,i)=>i+1)];
+  const chipCls = c => {
+    const l = late(c);
+    if(c.stage==='posted') return {background:'rgba(231,255,113,.12)',color:'var(--acid)'};
+    if(l?.key==='late')    return {background:'rgba(255,96,0,.15)',color:'var(--blaze)'};
+    if(['now','soon'].includes(l?.key)) return {background:'rgba(255,154,61,.13)',color:'var(--glow)'};
+    return {background:'rgba(255,251,249,.07)',color:'var(--dim)'};
+  };
+
+  const loose = st.content.filter(c=>c.needsShoot && !c.shootId && c.stage!=='posted');
+  const attach = (cid,sid) => save({...st, content: st.content.map(c=>c.id===cid?{...c,shootId:sid||null}:c)});
+
+  return (
+    <div style={{maxWidth:1080,margin:'0 auto'}}>
+      <Head t="content" s="every piece in flight, and when it actually has to be ready"
+            a="add content" onA={()=>setSheet('content')} />
+      <div style={{display:'flex',gap:6,marginBottom:20}}>
+        {['board','calendar','shoots'].map(t=>(
+          <button key={t} className="btn" onClick={()=>setTab(t)}
+            style={tab===t?{color:'var(--bone)',borderColor:'var(--faint)'}:{}}>{t}</button>
+        ))}
+      </div>
+
+      {tab==='board' && (
+        <div className="scroll-x">
+          {CHAIN.map(s=>{
+            const col = items.filter(c=>c.stage===s.k);
+            return (
+              <div key={s.k} className="panel-q" style={{width:196,flex:'none',padding:9}}>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'0 3px'}}>
+                  <span style={{fontSize:'.78rem'}}>{s.l}</span>
+                  <span className="num" style={{fontSize:'.78rem',color:'var(--faint)'}}>{col.length}</span>
+                </div>
+                <div className="mono" style={{padding:'4px 3px 10px',fontSize:'.58rem'}}>
+                  {s.lead?`${s.lead}d before`:'publish day'}
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                  {col.map(c=>{
+                    const l = late(c);
+                    return (
+                      <div key={c.id} style={{border:'1px solid var(--line)',borderRadius:8,padding:9,background:'var(--deep)'}}>
+                        <div style={{fontSize:'.78rem',lineHeight:1.4}}>{c.title}</div>
+                        <div style={{fontSize:'.68rem',color:'var(--faint)',marginTop:3}}>{nameOf(c.clientId)}</div>
+                        {l && !['ok','done'].includes(l.key) &&
+                          <span className={'tag '+l.cls} style={{marginTop:7,fontSize:'.62rem'}}>{l.label}</span>}
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                                     marginTop:9,paddingTop:7,borderTop:'1px solid var(--line)'}}>
+                          <span style={{fontSize:'.66rem',color:'var(--ghost)'}}>{c.owner||'—'}</span>
+                          <span style={{display:'flex',gap:5}}>
+                            <button onClick={()=>move(c.id,-1)} style={{fontSize:'.7rem',color:'var(--ghost)'}}>←</button>
+                            <button onClick={()=>move(c.id,1)}  style={{fontSize:'.7rem',color:'var(--ghost)'}}>→</button>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {!col.length && <div style={{fontSize:'.68rem',color:'var(--ghost)',padding:'6px 3px'}}>—</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab==='calendar' && (
+        <div>
+          <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:14}}>
+            <button className="btn" onClick={()=>setMonth(new Date(y,m-1,1))}>←</button>
+            <span style={{minWidth:150,textAlign:'center',fontSize:'.88rem'}}>
+              {month.toLocaleString('en-US',{month:'long',year:'numeric'}).toLowerCase()}
+            </span>
+            <button className="btn" onClick={()=>setMonth(new Date(y,m+1,1))}>→</button>
+          </div>
+          <div className="cal" style={{marginBottom:5}}>
+            {['sun','mon','tue','wed','thu','fri','sat'].map(d=>
+              <div key={d} className="mono" style={{textAlign:'center',fontSize:'.58rem'}}>{d}</div>)}
+          </div>
+          <div className="cal">
+            {cells.map((d,k)=>{
+              if(!d) return <div key={k}/>;
+              const date = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+              const on = items.filter(c=>c.publishOn===date);
+              const sh = st.shoots.filter(s=>s.date===date);
+              return (
+                <div key={k} className={'cell'+(date===nowIso()?' today':'')}>
+                  <div className="num" style={{fontSize:'.7rem',color:date===nowIso()?'var(--blaze)':'var(--ghost)',marginBottom:4}}>{d}</div>
+                  {sh.map(s=><div key={s.id} className="chip" style={{background:'rgba(255,251,249,.1)',color:'var(--bone)'}}>◉ {s.title}</div>)}
+                  {on.map(c=><div key={c.id} className="chip" style={chipCls(c)} title={c.title}>{c.title}</div>)}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:'flex',gap:18,flexWrap:'wrap',marginTop:16,fontSize:'.7rem',color:'var(--faint)'}}>
+            <Leg c="rgba(255,251,249,.3)" l="on schedule" />
+            <Leg c="var(--glow)"  l="due now" />
+            <Leg c="var(--blaze)" l="behind" />
+            <Leg c="var(--acid)"  l="posted" />
+          </div>
+        </div>
+      )}
+
+      {tab==='shoots' && (
+        <div style={{maxWidth:660}}>
+          <button className="btn" style={{marginBottom:18}} onClick={()=>setSheet('shoot')}>+ plan a shoot</button>
+          {loose.length>0 && (
+            <div style={{border:'1px solid rgba(255,96,0,.35)',background:'rgba(255,96,0,.06)',borderRadius:10,padding:15,marginBottom:22}}>
+              <div style={{fontSize:'.85rem',color:'var(--glow)',marginBottom:10}}>
+                {loose.length} piece{loose.length>1?'s':''} need a camera but aren't on a shoot day
+              </div>
+              {loose.map(c=>(
+                <div key={c.id} style={{display:'flex',justifyContent:'space-between',gap:9,flexWrap:'wrap',
+                                        padding:'8px 0',borderTop:'1px solid var(--line)'}}>
+                  <div>
+                    <div style={{fontSize:'.8rem'}}>{c.title}</div>
+                    <div style={{fontSize:'.68rem',color:'var(--faint)'}}>{nameOf(c.clientId)} · out {c.publishOn}</div>
+                  </div>
+                  <select value="" onChange={e=>attach(c.id,e.target.value)} style={{width:'auto',fontSize:'.72rem'}}>
+                    <option value="">assign to shoot…</option>
+                    {st.shoots.map(s=><option key={s.id} value={s.id}>{s.title} · {s.date}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{display:'flex',flexDirection:'column',gap:11}}>
+            {st.shoots.map(s=>{
+              const on = st.content.filter(c=>c.shootId===s.id);
+              const d = gap(s.date, nowIso());
+              return (
+                <div key={s.id} className="panel" style={{padding:16}}>
+                  <div style={{display:'flex',justifyContent:'space-between',gap:10,marginBottom:11}}>
+                    <div>
+                      <div style={{fontSize:'.92rem'}}>{s.title}</div>
+                      <div style={{fontSize:'.72rem',color:'var(--faint)',marginTop:2}}>{s.date}{s.location?` · ${s.location}`:''}</div>
+                    </div>
+                    <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+                      <span className="tag t-calm">{d>=0?`in ${d}d`:`${-d}d ago`}</span>
+                      <button onClick={()=>save({...st,shoots:st.shoots.filter(x=>x.id!==s.id),
+                        content:st.content.map(c=>c.shootId===s.id?{...c,shootId:null}:c)})}
+                        style={{color:'var(--ghost)',fontSize:'.8rem'}}>✕</button>
+                    </div>
+                  </div>
+                  <div className="mono" style={{borderTop:'1px solid var(--line)',paddingTop:11,marginBottom:7}}>
+                    shot list — {on.length}
+                  </div>
+                  {on.map(c=>(
+                    <div key={c.id} style={{display:'flex',justifyContent:'space-between',padding:'3px 0',fontSize:'.78rem'}}>
+                      <span>{c.title} <span style={{color:'var(--ghost)'}}>· {nameOf(c.clientId)}</span></span>
+                      <button onClick={()=>attach(c.id,null)} style={{color:'var(--ghost)',fontSize:'.7rem'}}>remove</button>
+                    </div>
+                  ))}
+                  {!on.length && <div style={{fontSize:'.75rem',color:'var(--ghost)'}}>nothing assigned yet</div>}
+                </div>
+              );
+            })}
+            {!st.shoots.length && <Empty>no shoots planned. batching is how you stop chasing one video at a time.</Empty>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- clients ---------- */
+function Clients({ st, save, period, setPeriod, open, setOpen, setSheet }){
+  if(open){
+    const c = st.clients.find(x=>x.id===open);
+    if(!c) return null;
+    const h = healthOf(st,c,period);
+    const bump = (format,d) => save({...st, clients: st.clients.map(x=>{
+      if(x.id!==c.id) return x;
+      const man = {...(x.manual||{})}, mo = {...(man[period]||{})};
+      mo[format] = (mo[format]||0)+d; man[period]=mo;
+      return {...x, manual:man};
+    })});
+
+    return (
+      <div style={{maxWidth:780,margin:'0 auto'}}>
+        <button className="btn" style={{marginBottom:18}} onClick={()=>setOpen(null)}>← all clients</button>
+        <div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:20}}>
+          <div>
+            <div className="disp" style={{fontSize:'1.5rem'}}>{c.name}</div>
+            <div style={{fontSize:'.78rem',color:'var(--faint)',marginTop:3}}>{inr(c.fee)}/mo · {c.owner||'—'}</div>
+          </div>
+          <span className={'tag '+h.cls}>{h.label}</span>
+        </div>
+        <MonthNav period={period} setPeriod={setPeriod} />
+        <div className="mono" style={{marginBottom:11}}>quota — counted from posted content</div>
+        <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(230px,1fr))',marginBottom:26}}>
+          {(c.quotas||[]).map(q=>{
+            const n = delivered(st,c,period,q.format);
+            return (
+              <div key={q.format} className="panel" style={{padding:14}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}}>
+                  <span style={{fontSize:'.85rem'}}>{q.format}</span>
+                  <span style={{display:'flex',alignItems:'center',gap:7}}>
+                    <button className="btn" style={{padding:'1px 8px'}} onClick={()=>bump(q.format,-1)}>−</button>
+                    <span className="num" style={{fontSize:'.95rem',minWidth:44,textAlign:'center'}}>
+                      {n}<span style={{color:'var(--ghost)'}}>/{q.target}</span>
+                    </span>
+                    <button className="btn" style={{padding:'1px 8px'}} onClick={()=>bump(q.format,1)}>+</button>
+                  </span>
+                </div>
+                <Pace done={n} target={q.target} period={period} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{maxWidth:900,margin:'0 auto'}}>
+      <Head t="clients" s="delivered against quota — the dot marks where you should be today"
+            a="add client" onA={()=>setSheet('client')} />
+      <MonthNav period={period} setPeriod={setPeriod} />
+      <div className="grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))'}}>
+        {st.clients.map(c=>{
+          const h = healthOf(st,c,period);
+          return (
+            <button key={c.id} className="panel" onClick={()=>setOpen(c.id)}
+              style={{padding:17,textAlign:'left',cursor:'pointer'}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:10,marginBottom:16}}>
+                <div>
+                  <div style={{fontSize:'.95rem'}}>{c.name}</div>
+                  <div style={{fontSize:'.72rem',color:'var(--faint)',marginTop:2}}>{inr(c.fee)}/mo · {c.owner||'—'}</div>
+                </div>
+                <span className={'tag '+h.cls} style={{height:'fit-content'}}>{h.label}</span>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                {(c.quotas||[]).map(q=>{
+                  const n = delivered(st,c,period,q.format);
+                  return (
+                    <div key={q.format}>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:'.74rem',marginBottom:6}}>
+                        <span style={{color:'var(--dim)'}}>{q.format}</span>
+                        <span className="num" style={{color:'var(--faint)'}}>
+                          <span style={{color:'var(--bone)'}}>{n}</span>/{q.target}
+                        </span>
+                      </div>
+                      <Pace done={n} target={q.target} period={period} />
+                    </div>
+                  );
+                })}
+              </div>
+            </button>
+          );
+        })}
+        {!st.clients.length && <Empty>no clients yet.</Empty>}
+      </div>
+    </div>
+  );
+}
+
+/* the signature: gradient dot marks required pace */
+function Pace({ done, target, period }){
+  const pace = paceOf(period);
+  const pct = Math.min(done/(target||1),1)*100;
+  const over = done>target, behind = done/(target||1) < pace-.15;
+  const col = over?'var(--glow)':behind?'var(--blaze)':'rgba(255,251,249,.45)';
+  return (
+    <div className="bar">
+      <i style={{width:pct+'%',background:col}}/>
+      {pace>0 && pace<1 &&
+        <span className="dot" style={{position:'absolute',top:-2.5,left:`calc(${pace*100}% - 4px)`,width:8,height:8}}/>}
+    </div>
+  );
+}
+
+/* ---------- projects ---------- */
+function Projects({ st, save, setSheet }){
+  const nameOf = p => p.clientId ? (st.clients.find(c=>c.id===p.clientId)?.name||'—') : (p.clientName||'—');
+  const move = (id,dir) => save({...st, projects: st.projects.map(p=>{
+    if(p.id!==id) return p;
+    const i = PSTAGES.indexOf(p.stage);
+    return {...p, stage: PSTAGES[Math.max(0,Math.min(PSTAGES.length-1,i+dir))]};
+  })});
+
+  return (
+    <div style={{maxWidth:1080,margin:'0 auto'}}>
+      <Head t="projects" s="one-off work from first enquiry to payment received"
+            a="new project" onA={()=>setSheet('project')} />
+      <div className="scroll-x">
+        {PSTAGES.map(s=>{
+          const col = st.projects.filter(p=>p.stage===s);
+          const tot = col.reduce((a,p)=>a+Number(p.value||0),0);
+          return (
+            <div key={s} className="panel-q" style={{width:200,flex:'none',padding:9}}>
+              <div style={{display:'flex',justifyContent:'space-between',padding:'0 3px'}}>
+                <span style={{fontSize:'.78rem'}}>{s}</span>
+                <span className="num" style={{fontSize:'.78rem',color:'var(--faint)'}}>{col.length}</span>
+              </div>
+              <div className="num" style={{padding:'4px 3px 10px',fontSize:'.7rem',color:'var(--ghost)'}}>{tot?inr(tot):'—'}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                {col.map(p=>{
+                  const f = projFlag(p), over = p.revUsed>p.revIncl;
+                  return (
+                    <div key={p.id} style={{border:'1px solid var(--line)',borderRadius:8,padding:10,background:'var(--deep)'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',gap:6}}>
+                        <span style={{fontSize:'.78rem',lineHeight:1.4}}>{p.title}</span>
+                        <button onClick={()=>save({...st,projects:st.projects.filter(x=>x.id!==p.id)})}
+                          style={{color:'var(--ghost)',fontSize:'.7rem'}}>✕</button>
+                      </div>
+                      <div style={{fontSize:'.68rem',color:'var(--faint)',marginTop:3}}>{nameOf(p)}</div>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginTop:9}}>
+                        <span className="num" style={{fontSize:'.8rem'}}>{inr(p.value)}</span>
+                        <button onClick={()=>save({...st,projects:st.projects.map(x=>x.id===p.id?{...x,revUsed:x.revUsed+1}:x)})}
+                          className="num" style={{fontSize:'.68rem',color:over?'var(--blaze)':'var(--ghost)'}}
+                          title="log a revision">rev {p.revUsed}/{p.revIncl}</button>
+                      </div>
+                      {f && <span className={'tag '+f.cls} style={{marginTop:8,fontSize:'.62rem'}}>{f.label}</span>}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                                   marginTop:9,paddingTop:7,borderTop:'1px solid var(--line)'}}>
+                        <span style={{fontSize:'.66rem',color:'var(--ghost)'}}>{p.owner||'—'}</span>
+                        <span style={{display:'flex',gap:5}}>
+                          <button onClick={()=>move(p.id,-1)} style={{fontSize:'.7rem',color:'var(--ghost)'}}>←</button>
+                          <button onClick={()=>move(p.id,1)}  style={{fontSize:'.7rem',color:'var(--ghost)'}}>→</button>
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {!col.length && <div style={{fontSize:'.68rem',color:'var(--ghost)',padding:'6px 3px'}}>—</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- money ---------- */
+function Money({ st, save, period, setPeriod, setSheet }){
+  const nameOf = id => st.clients.find(c=>c.id===id)?.name || '—';
+  const have = new Set(st.invoices.filter(i=>i.period===period).map(i=>i.clientId));
+  const missing = st.clients.filter(c=>c.fee>0 && !have.has(c.id));
+  const mine = st.invoices.filter(i=>!i.period||i.period===period);
+  const sum = f => mine.filter(f).reduce((a,i)=>a+Number(i.amount||0),0);
+
+  const gen = () => save({...st, invoices:[...st.invoices, ...missing.map((c,k)=>({
+    id:uid(), number:`inv-${period.replace('-','')}-${String(st.invoices.length+k+1).padStart(3,'0')}`,
+    clientId:c.id, kind:'retainer', period, amount:Number(c.fee), status:'draft', dueAt:plus(15)
+  }))]});
+  const setStatus = (id,status) => save({...st, invoices: st.invoices.map(i=>i.id===id?{...i,status}:i)});
+
+  return (
+    <div style={{maxWidth:820,margin:'0 auto'}}>
+      <Head t="money" s="recurring retainer billing and one-off project invoices"
+            a="new invoice" onA={()=>setSheet('invoice')} />
+      <MonthNav period={period} setPeriod={setPeriod} />
+      <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',marginBottom:22}}>
+        <Stat l="collected"   v={inr(sum(i=>i.status==='paid'))} s="this month" acid />
+        <Stat l="outstanding" v={inr(sum(i=>i.status==='sent'))} s="awaiting" />
+        <Stat l="overdue"     v={inr(sum(invLate))} s={`${mine.filter(invLate).length} invoices`} hot={mine.some(invLate)} />
+      </div>
+      {missing.length>0 &&
+        <button className="btn" style={{width:'100%',padding:'14px',marginBottom:18,borderStyle:'dashed'}} onClick={gen}>
+          generate {missing.length} retainer invoice{missing.length>1?'s':''} for {perLabel(period)}
+        </button>}
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {mine.map(i=>{
+          const s = i.status==='paid' ? {l:'paid',c:'t-done'}
+                  : i.status==='draft'? {l:'draft',c:'t-calm'}
+                  : invLate(i)        ? {l:'overdue',c:'t-late'} : {l:'sent',c:'t-calm'};
+          return (
+            <div key={i.id} className="row" style={{display:'flex',justifyContent:'space-between',
+                                                    alignItems:'center',gap:12,flexWrap:'wrap'}}>
+              <div>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:'.88rem'}}>{nameOf(i.clientId)}</span>
+                  <span className={'tag '+s.c}>{s.l}</span>
+                </div>
+                <div style={{fontSize:'.7rem',color:'var(--faint)',marginTop:2}}>{i.number} · {i.kind} · due {i.dueAt}</div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span className="num" style={{fontSize:'.9rem'}}>{inr(i.amount)}</span>
+                {i.status==='draft' && <button className="btn" onClick={()=>setStatus(i.id,'sent')}>mark sent</button>}
+                {i.status==='sent'  && <button className="btn btn-p" onClick={()=>setStatus(i.id,'paid')}>paid</button>}
+                <button onClick={()=>save({...st,invoices:st.invoices.filter(x=>x.id!==i.id)})}
+                  style={{color:'var(--ghost)'}}>✕</button>
+              </div>
+            </div>
+          );
+        })}
+        {!mine.length && <Empty>no invoices this month.</Empty>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- forms ---------- */
+function Sheet({ title, children, close, submit, cta }){
+  return (
+    <div className="sheet" onMouseDown={e=>e.target===e.currentTarget&&close()}>
+      <div className="card">
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:20}}>
+          <span className="disp" style={{fontSize:'1.05rem'}}>{title}</span>
+          <button onClick={close} style={{color:'var(--faint)'}}>✕</button>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:15}}>{children}</div>
+        <div style={{display:'flex',justifyContent:'flex-end',gap:9,marginTop:24}}>
+          <button className="btn" onClick={close}>cancel</button>
+          <button className="btn btn-p" onClick={submit}>{cta}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+const F = ({l,children}) => (<div><div className="mono" style={{marginBottom:7}}>{l}</div>{children}</div>);
+const Sel = ({v,on,opts}) => <select value={v} onChange={e=>on(e.target.value)}>{opts.map(o=><option key={o} value={o}>{o||'—'}</option>)}</select>;
+
+function ContentForm({ st, save, close }){
+  const [f,setF] = useState({ title:'', clientId:st.clients[0]?.id||'', format:'reel',
+    publishOn:plus(12), needsShoot:false, owner:st.people[0]||'', stage:'idea' });
+  const s = k => v => setF(p=>({...p,[k]:v}));
+  const chain = CHAIN.filter(c=>!c.shootOnly||f.needsShoot);
+  return (
+    <Sheet title="add content" close={close} cta="add to pipeline" submit={()=>{
+      if(!f.title.trim()) return;
+      save({...st, content:[...st.content,{id:uid(),...f,title:f.title.trim(),shootId:null}]}); close();
+    }}>
+      <F l="what is it"><input value={f.title} onChange={e=>s('title')(e.target.value)} placeholder="chef's table teaser" /></F>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="client"><select value={f.clientId} onChange={e=>s('clientId')(e.target.value)}>
+          {st.clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></F>
+        <F l="format"><Sel v={f.format} on={s('format')} opts={FORMATS}/></F>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="publish date"><input type="date" value={f.publishOn} onChange={e=>s('publishOn')(e.target.value)}/></F>
+        <F l="owner"><Sel v={f.owner} on={s('owner')} opts={['',...st.people]}/></F>
+      </div>
+      <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'.85rem',cursor:'pointer'}}>
+        <input type="checkbox" checked={f.needsShoot} onChange={e=>s('needsShoot')(e.target.checked)} /> needs a shoot
+      </label>
+      <div className="panel-q" style={{padding:13}}>
+        <div className="mono" style={{marginBottom:9}}>working backwards</div>
+        {chain.map(c=>(
+          <div key={c.k} style={{display:'flex',justifyContent:'space-between',fontSize:'.76rem',padding:'2px 0'}}>
+            <span style={{color:'var(--dim)'}}>{c.l}</span>
+            <span className="num" style={{color:'var(--faint)'}}>
+              {iso(new Date(new Date(f.publishOn).getTime()-c.lead*864e5))}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
+function ClientForm({ st, save, close }){
+  const [f,setF] = useState({name:'',fee:'',owner:st.people[0]||''});
+  const [q,setQ] = useState([{format:'post',target:12}]);
+  const s = k => v => setF(p=>({...p,[k]:v}));
+  return (
+    <Sheet title="add client" close={close} cta="add client" submit={()=>{
+      if(!f.name.trim()) return;
+      save({...st, clients:[...st.clients,{id:uid(),name:f.name.trim().toLowerCase(),
+        fee:Number(f.fee)||0,owner:f.owner,quotas:q.filter(x=>x.target>0),manual:{}}]}); close();
+    }}>
+      <F l="client name"><input value={f.name} onChange={e=>s('name')(e.target.value)} placeholder="verde hospitality"/></F>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="monthly fee"><input type="number" value={f.fee} onChange={e=>s('fee')(e.target.value)} placeholder="60000"/></F>
+        <F l="owner"><Sel v={f.owner} on={s('owner')} opts={['',...st.people]}/></F>
+      </div>
+      <F l="monthly quota">
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {q.map((r,i)=>(
+            <div key={i} style={{display:'flex',gap:8}}>
+              <select value={r.format} onChange={e=>setQ(q.map((x,j)=>j===i?{...x,format:e.target.value}:x))}>
+                {FORMATS.map(o=><option key={o} value={o}>{o}</option>)}</select>
+              <input type="number" style={{width:74}} value={r.target}
+                onChange={e=>setQ(q.map((x,j)=>j===i?{...x,target:Number(e.target.value)}:x))}/>
+              <button onClick={()=>setQ(q.filter((_,j)=>j!==i))} style={{color:'var(--ghost)'}}>✕</button>
+            </div>
+          ))}
+          <button onClick={()=>setQ([...q,{format:'reel',target:4}])}
+            style={{alignSelf:'flex-start',fontSize:'.75rem',color:'var(--faint)'}}>+ add format</button>
+        </div>
+      </F>
+    </Sheet>
+  );
+}
+
+function ProjectForm({ st, save, close }){
+  const [f,setF] = useState({title:'',clientId:st.clients[0]?.id||'',type:'production',
+    value:'',deadline:plus(21),revIncl:2,owner:st.people[0]||''});
+  const s = k => v => setF(p=>({...p,[k]:v}));
+  return (
+    <Sheet title="new project" close={close} cta="create" submit={()=>{
+      if(!f.title.trim()) return;
+      save({...st, projects:[...st.projects,{id:uid(),...f,title:f.title.trim(),
+        value:Number(f.value)||0,revIncl:Number(f.revIncl)||0,revUsed:0,stage:'inquiry'}]}); close();
+    }}>
+      <F l="project"><input value={f.title} onChange={e=>s('title')(e.target.value)} placeholder="brand film"/></F>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="client"><select value={f.clientId} onChange={e=>s('clientId')(e.target.value)}>
+          {st.clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></F>
+        <F l="type"><Sel v={f.type} on={s('type')} opts={PTYPES}/></F>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:11}}>
+        <F l="value"><input type="number" value={f.value} onChange={e=>s('value')(e.target.value)}/></F>
+        <F l="deadline"><input type="date" value={f.deadline} onChange={e=>s('deadline')(e.target.value)}/></F>
+        <F l="revisions"><input type="number" value={f.revIncl} onChange={e=>s('revIncl')(e.target.value)}/></F>
+      </div>
+      <F l="owner"><Sel v={f.owner} on={s('owner')} opts={['',...st.people]}/></F>
+    </Sheet>
+  );
+}
+
+function ShootForm({ st, save, close }){
+  const [f,setF] = useState({title:'',date:plus(7),location:''});
+  const s = k => v => setF(p=>({...p,[k]:v}));
+  return (
+    <Sheet title="plan a shoot" close={close} cta="add shoot day" submit={()=>{
+      if(!f.title.trim()) return;
+      save({...st, shoots:[...st.shoots,{id:uid(),...f,title:f.title.trim()}]}); close();
+    }}>
+      <F l="what's the day"><input value={f.title} onChange={e=>s('title')(e.target.value)} placeholder="verde rooftop batch"/></F>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="date"><input type="date" value={f.date} onChange={e=>s('date')(e.target.value)}/></F>
+        <F l="location"><input value={f.location} onChange={e=>s('location')(e.target.value)}/></F>
+      </div>
+    </Sheet>
+  );
+}
+
+function InvoiceForm({ st, save, close }){
+  const [f,setF] = useState({clientId:st.clients[0]?.id||'',amount:'',kind:'milestone',dueAt:plus(15)});
+  const s = k => v => setF(p=>({...p,[k]:v}));
+  return (
+    <Sheet title="new invoice" close={close} cta="create" submit={()=>{
+      if(!f.amount) return;
+      save({...st, invoices:[...st.invoices,{id:uid(),
+        number:`inv-${String(st.invoices.length+1).padStart(4,'0')}`,
+        ...f, amount:Number(f.amount), period:null, status:'draft'}]}); close();
+    }}>
+      <F l="client"><select value={f.clientId} onChange={e=>s('clientId')(e.target.value)}>
+        {st.clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></F>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:11}}>
+        <F l="amount"><input type="number" value={f.amount} onChange={e=>s('amount')(e.target.value)}/></F>
+        <F l="kind"><Sel v={f.kind} on={s('kind')} opts={['milestone','deposit','balance','adhoc']}/></F>
+      </div>
+      <F l="due date"><input type="date" value={f.dueAt} onChange={e=>s('dueAt')(e.target.value)}/></F>
+    </Sheet>
+  );
+}
+
+/* ---------- bits ---------- */
+const Head = ({t,s,a,onA}) => (
+  <div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:22}}>
+    <div>
+      <h1 className="disp" style={{fontSize:'1.7rem',lineHeight:1.1}}>{t}</h1>
+      <p style={{fontSize:'.8rem',color:'var(--faint)',marginTop:6,maxWidth:440}}>{s}</p>
+    </div>
+    {a && <button className="btn btn-p" style={{height:'fit-content'}} onClick={onA}>+ {a}</button>}
+  </div>
+);
+const Stat = ({l,v,s,hot,acid}) => (
+  <div className="panel" style={{padding:15}}>
+    <div className="mono">{l}</div>
+    <div className="num" style={{fontSize:'1.5rem',marginTop:9,
+      color:hot?'var(--blaze)':acid?'var(--acid)':'var(--bone)'}}>{v}</div>
+    <div style={{fontSize:'.7rem',color:'var(--ghost)',marginTop:3}}>{s}</div>
+  </div>
+);
+const Empty = ({children}) => (
+  <div style={{border:'1px dashed var(--line-2)',borderRadius:10,padding:'40px 18px',
+               textAlign:'center',fontSize:'.82rem',color:'var(--ghost)'}}>{children}</div>
+);
+const Leg = ({c,l}) => (
+  <span style={{display:'flex',alignItems:'center',gap:7}}>
+    <span style={{width:7,height:7,borderRadius:99,background:c}}/>{l}</span>
+);
+function MonthNav({period,setPeriod}){
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:20}}>
+      <button className="btn" onClick={()=>setPeriod(perShift(period,-1))}>←</button>
+      <span style={{minWidth:140,textAlign:'center',fontSize:'.85rem'}}>{perLabel(period)}</span>
+      <button className="btn" onClick={()=>setPeriod(perShift(period,1))}>→</button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
